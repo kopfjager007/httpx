@@ -2,8 +2,11 @@ package httpx
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
+	"net/http"
+	"strings"
 
+	"github.com/projectdiscovery/stringsutil"
 	"golang.org/x/text/encoding/korean"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/encoding/traditionalchinese"
@@ -16,7 +19,7 @@ import (
 func Decodegbk(s []byte) ([]byte, error) {
 	I := bytes.NewReader(s)
 	O := transform.NewReader(I, simplifiedchinese.GBK.NewDecoder())
-	d, e := ioutil.ReadAll(O)
+	d, e := io.ReadAll(O)
 	if e != nil {
 		return nil, e
 	}
@@ -27,7 +30,7 @@ func Decodegbk(s []byte) ([]byte, error) {
 func Decodebig5(s []byte) ([]byte, error) {
 	I := bytes.NewReader(s)
 	O := transform.NewReader(I, traditionalchinese.Big5.NewDecoder())
-	d, e := ioutil.ReadAll(O)
+	d, e := io.ReadAll(O)
 	if e != nil {
 		return nil, e
 	}
@@ -38,7 +41,7 @@ func Decodebig5(s []byte) ([]byte, error) {
 func Encodebig5(s []byte) ([]byte, error) {
 	I := bytes.NewReader(s)
 	O := transform.NewReader(I, traditionalchinese.Big5.NewEncoder())
-	d, e := ioutil.ReadAll(O)
+	d, e := io.ReadAll(O)
 	if e != nil {
 		return nil, e
 	}
@@ -48,4 +51,38 @@ func Encodebig5(s []byte) ([]byte, error) {
 func DecodeKorean(s []byte) ([]byte, error) {
 	koreanDecoder := korean.EUCKR.NewDecoder()
 	return koreanDecoder.Bytes(s)
+}
+
+// ExtractTitle from a response
+func DecodeData(data []byte, headers http.Header) ([]byte, error) {
+	// Non UTF-8
+	if contentTypes, ok := headers["Content-Type"]; ok {
+		contentType := strings.ToLower(strings.Join(contentTypes, ";"))
+
+		switch {
+		case stringsutil.ContainsAny(contentType, "charset=gb2312", "charset=gbk"):
+			return Decodegbk([]byte(data))
+		case stringsutil.ContainsAny(contentType, "euc-kr"):
+			return DecodeKorean(data)
+		}
+
+		// Content-Type from head tag
+		var match = reContentType.FindSubmatch(data)
+		var mcontentType = ""
+		if len(match) != 0 {
+			for i, v := range match {
+				if string(v) != "" && i != 0 {
+					mcontentType = string(v)
+				}
+			}
+			mcontentType = strings.ToLower(mcontentType)
+		}
+		switch {
+		case stringsutil.ContainsAny(mcontentType, "gb2312", "gbk"):
+			return Decodegbk(data)
+		}
+	}
+
+	// return as is
+	return data, nil
 }

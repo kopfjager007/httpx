@@ -19,12 +19,12 @@
   <a href="#installation-instructions">Installation</a> •
   <a href="#usage">Usage</a> •
   <a href="#running-httpx">Running httpx</a> •
-  <a href="#-notes">Notes</a> •
+  <a href="#notes">Notes</a> •
   <a href="https://discord.gg/projectdiscovery">Join Discord</a>
 </p>
 
 
-httpx is a fast and multi-purpose HTTP toolkit allow to run multiple probers using [retryablehttp](https://github.com/projectdiscovery/retryablehttp-go) library, it is designed to maintain the result reliability with increased threads.
+httpx is a fast and multi-purpose HTTP toolkit that allows running multiple probes using the [retryablehttp](https://github.com/projectdiscovery/retryablehttp-go) library. It is designed to maintain result reliability with an increased number of threads.
 
 # Features
 
@@ -42,23 +42,23 @@ httpx is a fast and multi-purpose HTTP toolkit allow to run multiple probers usi
 
 ### Supported probes:-
 
-| Probes          | Default check | Probes            | Default check |
-| --------------- | ------------- | ----------------- | ------------- |
-| URL             | true          | IP                | true          |
-| Title           | true          | CNAME             | true          |
-| Status Code     | true          | Raw HTTP          | false         |
-| Content Length  | true          | HTTP2             | false         |
-| TLS Certificate | true          | HTTP Pipeline     | false         |
-| CSP Header      | true          | Virtual host      | false         |
-| Line Count      | true          | Word Count        | true          |
-| Location Header | true          | CDN               | false         |
-| Web Server      | true          | Paths             | false         |
-| Web Socket      | true          | Ports             | false         |
-| Response Time   | true          | Request Method    | true          |
-| Favicon Hash    | false         | Probe  Status     | false         |
-| Body Hash       | true          | Header  Hash      | true          |
-| Redirect chain  | false         | URL Scheme        | true          |
-
+| Probes          | Default check | Probes         | Default check |
+|-----------------|---------------|----------------|---------------|
+| URL             | true          | IP             | true          |
+| Title           | true          | CNAME          | true          |
+| Status Code     | true          | Raw HTTP       | false         |
+| Content Length  | true          | HTTP2          | false         |
+| TLS Certificate | true          | HTTP Pipeline  | false         |
+| CSP Header      | true          | Virtual host   | false         |
+| Line Count      | true          | Word Count     | true          |
+| Location Header | true          | CDN            | false         |
+| Web Server      | true          | Paths          | false         |
+| Web Socket      | true          | Ports          | false         |
+| Response Time   | true          | Request Method | true          |
+| Favicon Hash    | false         | Probe  Status  | false         |
+| Body Hash       | true          | Header  Hash   | true          |
+| Redirect chain  | false         | URL Scheme     | true          |
+| JARM Hash       | false         | ASN            | false         |
 
 # Installation Instructions
 
@@ -85,6 +85,7 @@ Flags:
 INPUT:
    -l, -list string      input file containing list of hosts to process
    -rr, -request string  file containing raw request
+   -u, -target string[]  input target host(s) to probe
 
 PROBES:
    -sc, -status-code     display response status-code
@@ -93,6 +94,7 @@ PROBES:
    -location             display response redirect location
    -favicon              display mmh3 hash for '/favicon.ico' file
    -hash string          display response body hash (supported: md5,mmh3,simhash,sha1,sha256,sha512)
+   -jarm                 display jarm fingerprint hash
    -rt, -response-time   display response time
    -lc, -line-count      display response body line count
    -wc, -word-count      display response body word count
@@ -103,29 +105,37 @@ PROBES:
    -websocket            display server using websocket
    -ip                   display host ip
    -cname                display host cname
+   -asn                  display host asn information
    -cdn                  display cdn in use
    -probe                display probe status
 
 MATCHERS:
-   -mc, -match-code string         match response with specified status code (-mc 200,302)
-   -ml, -match-length string       match response with specified content length (-ml 100,102)
-   -mlc, -match-line-count string  match response body with specified line count (-mlc 423,532)
-   -mwc, -match-word-count string  match response body with specified word count (-mwc 43,55)
-   -mfc, -match-favicon string[]   match response with specified favicon hash (-mfc 1494302000)
-   -ms, -match-string string       match response with specified string (-ms admin)
-   -mr, -match-regex string        match response with specified regex (-mr admin)
+   -mc, -match-code string            match response with specified status code (-mc 200,302)
+   -ml, -match-length string          match response with specified content length (-ml 100,102)
+   -mlc, -match-line-count string     match response body with specified line count (-mlc 423,532)
+   -mwc, -match-word-count string     match response body with specified word count (-mwc 43,55)
+   -mfc, -match-favicon string[]      match response with specified favicon hash (-mfc 1494302000)
+   -ms, -match-string string          match response with specified string (-ms admin)
+   -mr, -match-regex string           match response with specified regex (-mr admin)
+   -mcdn, -match-cdn string[]         match host with specified cdn provider (fastly, incapsula, oracle, google, azure, cloudflare, cloudfront, sucuri, leaseweb, akamai)
+   -mrt, -match-response-time string  match response with specified response time in seconds (-mrt '< 1')
+   -mdc, -match-condition string      match response with dsl expression condition
 
 EXTRACTOR:
-   -er, -extract-regex string  display response content for specified regex
+   -er, -extract-regex string[]   display response content with matched regex
+   -ep, -extract-preset string[]  display response content matched by a pre-defined regex (url,ipv4,mail)
 
 FILTERS:
-   -fc, -filter-code string         filter response with specified status code (-fc 403,401)
-   -fl, -filter-length string       filter response with specified content length (-fl 23,33)
-   -flc, -filter-line-count string  filter response body with specified line count (-flc 423,532)
-   -fwc, -filter-word-count string  filter response body with specified word count (-fwc 423,532)
-   -ffc, -filter-favicon string[]   filter response with specified favicon hash (-mfc 1494302000)
-   -fs, -filter-string string       filter response with specified string (-fs admin)
-   -fe, -filter-regex string        filter response with specified regex (-fe admin)
+   -fc, -filter-code string            filter response with specified status code (-fc 403,401)
+   -fl, -filter-length string          filter response with specified content length (-fl 23,33)
+   -flc, -filter-line-count string     filter response body with specified line count (-flc 423,532)
+   -fwc, -filter-word-count string     filter response body with specified word count (-fwc 423,532)
+   -ffc, -filter-favicon string[]      filter response with specified favicon hash (-mfc 1494302000)
+   -fs, -filter-string string          filter response with specified string (-fs admin)
+   -fe, -filter-regex string           filter response with specified regex (-fe admin)
+   -fcdn, -filter-cdn string[]         filter host with specified cdn provider (fastly, incapsula, oracle, google, azure, cloudflare, cloudfront, sucuri, leaseweb, akamai)
+   -frt, -filter-response-time string  filter response with specified response time in seconds (-frt '> 1')
+   -fdc, -filter-condition string      filter response with dsl expression condition
 
 RATE-LIMIT:
    -t, -threads int              number of threads to use (default 50)
@@ -133,15 +143,16 @@ RATE-LIMIT:
    -rlm, -rate-limit-minute int  maximum number of requests to send per minute
 
 MISCELLANEOUS:
-   -pa, -probe-all-ips  probe all the ips associated with same host
-   -p, -ports string[]  ports to probe (nmap syntax: eg 1,2-10,11)
-   -path string         path or list of paths to probe (comma-separated, file)
-   -tls-probe           send http probes on the extracted TLS domains (dns_name)
-   -csp-probe           send http probes on the extracted CSP domains
-   -tls-grab            perform TLS(SSL) data grabbing
-   -pipeline            probe and display server supporting HTTP1.1 pipeline
-   -http2               probe and display server supporting HTTP2
-   -vhost               probe and display server supporting VHOST
+   -pa, -probe-all-ips        probe all the ips associated with same host
+   -p, -ports string[]        ports to probe (nmap syntax: eg http:1,2-10,11,https:80)
+   -path string               path or list of paths to probe (comma-separated, file)
+   -tls-probe                 send http probes on the extracted TLS domains (dns_name)
+   -csp-probe                 send http probes on the extracted CSP domains
+   -tls-grab                  perform TLS(SSL) data grabbing
+   -pipeline                  probe and display server supporting HTTP1.1 pipeline
+   -http2                     probe and display server supporting HTTP2
+   -vhost                     probe and display server supporting VHOST
+   -ldv, -list-dsl-variables  list json output field keys name that support dsl matcher/filter
 
 OUTPUT:
    -o, -output string                file to write output results
@@ -157,7 +168,8 @@ CONFIGURATIONS:
    -r, -resolvers string[]       list of custom resolver (file or comma separated)
    -allow string[]               allowed list of IP/CIDR's to process (file or comma separated)
    -deny string[]                denied list of IP/CIDR's to process (file or comma separated)
-   -random-agent                 Enable Random User-Agent to use (default true)
+   -sni, -sni-name string        custom TLS SNI name
+   -random-agent                 enable Random User-Agent to use (default true)
    -H, -header string[]          custom http headers to send with request
    -http-proxy, -proxy string    http proxy to use (eg http://127.0.0.1:8080)
    -unsafe                       send raw requests skipping golang normalization
@@ -170,14 +182,16 @@ CONFIGURATIONS:
    -body string                  post body to include in http request
    -s, -stream                   stream mode - start elaborating input targets without sorting
    -sd, -skip-dedupe             disable dedupe input items (only used with stream mode)
-   -ldp, -leave-default-ports    leave default http/https ports in host header (eg. http://host:80 - https//host:443)
+   -ldp, -leave-default-ports    leave default http/https ports in host header (eg. http://host:80 - https//host:443
 
 DEBUG:
+   -health-check, -hc        run diagnostic check up
    -debug                    display request/response content in cli
    -debug-req                display request content in cli
    -debug-resp               display response content in cli
    -version                  display httpx version
    -stats                    display scan statistic
+   -profile-mem string       optional httpx memory profile dump file
    -silent                   silent mode
    -v, -verbose              verbose mode
    -si, -stats-interval int  number of seconds to wait between showing a statistics update (default: 5)
@@ -278,7 +292,16 @@ https://173.0.84.6
 https://173.0.84.16
 https://173.0.84.34
 ```
+### AS Number Input
+```console
+echo AS14421 | httpx -silent
 
+https://216.101.17.248
+https://216.101.17.249
+https://216.101.17.250
+https://216.101.17.251
+https://216.101.17.252
+```
 
 ### Tool Chain
 
@@ -334,7 +357,61 @@ https://mta-sts.hackerone.com/favicon.ico [-1700323260]
 https://www.hackerone.com/favicon.ico [778073381]
 ```
 
-### Path Probe
+### [JARM Fingerprint](https://github.com/salesforce/jarm)
+
+
+```console
+subfinder -d hackerone.com -silent | httpx -jarm
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.2.1
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://www.hackerone.com [29d3dd00029d29d00042d43d00041d5de67cc9954cc85372523050f20b5007]
+https://mta-sts.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://mta-sts.managed.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://docs.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://support.hackerone.com [29d3dd00029d29d00029d3dd29d29d5a74e95248e58a6162e37847a24849f7]
+https://api.hackerone.com [29d3dd00029d29d00042d43d00041d5de67cc9954cc85372523050f20b5007]
+https://mta-sts.forwarding.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://resources.hackerone.com [2ad2ad0002ad2ad0002ad2ad2ad2ad043bfbd87c13813505a1b60adf4f6ff5]
+```
+
+### ASN Fingerprint
+
+
+```console
+subfinder -d hackerone.com -silent | httpx -asn
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.2.1
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://mta-sts.managed.hackerone.com [AS54113, FASTLY, US]
+https://gslink.hackerone.com [AS16509, AMAZON-02, US]
+https://www.hackerone.com [AS13335, CLOUDFLARENET, US]
+https://mta-sts.forwarding.hackerone.com [AS54113, FASTLY, US]
+https://resources.hackerone.com [AS16509, AMAZON-02, US]
+https://support.hackerone.com [AS13335, CLOUDFLARENET, US]
+https://mta-sts.hackerone.com [AS54113, FASTLY, US]
+https://docs.hackerone.com [AS54113, FASTLY, US]
+https://api.hackerone.com [AS13335, CLOUDFLARENET, US]
+```
+
+
+### File/Path Bruteforce
 
 
 ```console
@@ -390,8 +467,47 @@ https://docs.hackerone.com
 https://support.hackerone.com
 ```
 
+### Using httpx as a library
+`httpx` can be used as a library by creating an instance of the `Option` struct and populating it with the same options that would be specified via CLI. Once validated, the struct should be passed to a runner instance (to close at the end of the program) and the `RunEnumeration` method should be called. Here follows a minimal example of how to do it:
 
-# 📋 Notes
+```go
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/projectdiscovery/httpx/runner"
+)
+
+func main() {
+	inputFile := "test.txt"
+	err := os.WriteFile(inputFile, []byte("scanme.sh"), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(inputFile)
+
+	options := runner.Options{
+		Methods:   "GET",
+		InputFile: inputFile,
+	}
+	if err := options.ValidateOptions(); err != nil {
+		log.Fatal(err)
+	}
+
+	httpxRunner, err := runner.New(&options)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer httpxRunner.Close()
+
+	httpxRunner.RunEnumeration()
+}
+```
+
+
+# Notes
 
 - As default, **httpx** checks for `HTTPS` probe and fall-back to `HTTP` only if `HTTPS` is not reachable.
 - For printing both HTTP/HTTPS results, `no-fallback` flag can be used.
